@@ -39,6 +39,8 @@ sub parse2($) {
 		$n = $pat3;
 	} elsif ($pat3 =~ m/^([0-9]+)-([0-9]+)$/) {
 		$n = +[ $1, $2 ];
+		$n->[0] < $n->[1] or
+			syntax_error("range is reversed: " . $n->[0] " must be less than " . $n->[1]);
 	} else {
 		syntax_error("number, range or * is required: $pat2");
 	}
