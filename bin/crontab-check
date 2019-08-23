@@ -1,0 +1,84 @@
+#!/usr/bin/env perl
+use strict;
+use utf8;
+
+sub syntax_error($) {
+	my $msg = shift;
+	die "Syntax Error: $msg at line $.\n";
+}
+
+# <number>|<range>|<range>/<step>|<asterisc>|<asterisc>/<step>
+sub parse2($) {
+	my $pat2 = shift;
+
+	my $pat3;
+	my $step;
+
+	if ($pat2 =~ m@(.+)/([0-9]+)@) {
+		$pat3 = $1;
+		$step = $2;
+	} else {
+		$pat3 = $pat2;
+		$step = undef;
+	}
+
+	! defined($step) || $step > 1 or
+		syntax_error("$step is invalid step: $pat2");
+
+	my $n;
+
+	if ( $pat3 eq '*' ) {
+		$n = '*';
+	} elsif ($pat3 =~ m/^[0-9]+$/) {
+		defined($step) and
+			syntax_error("step is not allowed here: $pat2");
+		$n = $pat3;
+	} elsif ($pat3 =~ m/^([0-9]+)-([0-9]+)$/) {
+		$n = +[ $1, $2 ];
+	} else {
+		syntax_error("number, range or * is required: $pat2");
+	}
+
+	return +[ $n, $step ];
+}
+
+# comma separeted
+sub parse1($$) {
+	my $dispo = shift;
+	my $pat1 = shift;
+	defined($pat1) && $pat1 ne '' or
+	  syntax_error("$dispo is missing");
+	return +[ map { parse2($_) } split(m/,/, $pat1) ];
+}
+
+# space separated
+sub parse_line($) {
+	my $line = shift;
+
+	chomp $line or syntax_error("NO EOL");
+	$line =~ s/^[ \t]*//;
+
+	# blank line and comments are ignored
+	return undef if $line eq '';
+	return undef if $line =~ m/^#/;
+	# variable line are also ignored
+	return undef if $line =~ m/^[A-Za-z_]+ *=/;
+
+	my ($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $line, 6);
+	return +[
+		parse1(min => $min),
+		parse1(hour => $hour),
+		parse1(day => $day),
+		parse1(month => $month),
+		parse1(dayofweek => $dow),
+		$cmd ];
+}
+
+# TODO: implement AST vs TIME matcher
+
+while (<STDIN>) {
+	use Data::Dumper;
+	print Data::Dumper::Dumper(
+	parse_line($_)
+	);
+}
