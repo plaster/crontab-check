@@ -53,9 +53,9 @@ sub parse1($$) {
 	local $dispo = shift;
 	my $pat1 = shift;
 	defined($pat1) && $pat1 ne '' or
-	  syntax_error("$dispo is missing");
+		syntax_error("$dispo is missing");
 	$pat1 =~ m/,$/ and
-	  syntax_error("trailing comma is not allowed");
+		syntax_error("trailing comma is not allowed");
 	return +[ map { parse2($_) } split(m/,/, $pat1) ];
 }
 
