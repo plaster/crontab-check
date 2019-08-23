@@ -2,9 +2,13 @@
 use strict;
 use utf8;
 
+our $dispo;
+
 sub syntax_error($) {
 	my $msg = shift;
-	die "Syntax Error: $msg at line $.\n";
+	die "Syntax Error: $msg --"
+	. ($dispo ? " <$dispo>" : '')
+	. " at line $.\n";
 }
 
 # <number>|<range>|<range>/<step>|<asterisc>|<asterisc>/<step>
@@ -31,7 +35,7 @@ sub parse2($) {
 		$n = '*';
 	} elsif ($pat3 =~ m/^[0-9]+$/) {
 		defined($step) and
-			syntax_error("step is not allowed here: $pat2");
+			syntax_error("step is not allowed here (must be with range or *): $pat2");
 		$n = $pat3;
 	} elsif ($pat3 =~ m/^([0-9]+)-([0-9]+)$/) {
 		$n = +[ $1, $2 ];
@@ -44,10 +48,12 @@ sub parse2($) {
 
 # comma separeted
 sub parse1($$) {
-	my $dispo = shift;
+	local $dispo = shift;
 	my $pat1 = shift;
 	defined($pat1) && $pat1 ne '' or
 	  syntax_error("$dispo is missing");
+	$pat1 =~ m/,$/ and
+	  syntax_error("trailing comma is not allowed");
 	return +[ map { parse2($_) } split(m/,/, $pat1) ];
 }
 
