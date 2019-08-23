@@ -80,7 +80,56 @@ sub parse_line($) {
 		$cmd ];
 }
 
-# TODO: implement AST vs TIME matcher
+sub match2($$) {
+	my $pat2 = shift;
+	my $time1 = shift;
+
+	my ($pat3, $step) = @{$pat2};
+
+	my $stepbase = 0;
+
+	if (ref($pat3)) {
+		# range
+		$pat3->[0] <= $time1 && $time1 <= $pat3->[1] or return 0;
+		$stepbase = $pat3->[0];
+	} elsif ($pat3 eq '*') {
+		# asterisc - always pass
+	} else {
+		# number
+		$time1 == $pat3 or return 0;
+	}
+
+	# step check
+	if (defined($step) && defined($stepbase)) {
+		($stepbase % $step) == ($time1 % $step) || return 0;
+	}
+
+	return 1;
+}
+
+sub match1($$) {
+	my $pat1 = shift;
+	my $time1 = shift;
+
+	for my $pat2 ( @{$pat1} ) {
+		if (match2($pat2, $time1)) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+sub match_line($$) {
+	my $line = shift;
+	my $time = shift;
+
+	return match1($line->[0], $time->[0])
+		&& match1($line->[1], $time->[1])
+		&& match1($line->[2], $time->[2])
+		&& match1($line->[3], $time->[3])
+		&& match1($line->[4], $time->[4])
+		;
+}
 
 while (<STDIN>) {
 	use Data::Dumper;
