@@ -40,7 +40,7 @@ sub parse2($) {
 	} elsif ($pat3 =~ m/^([0-9]+)-([0-9]+)$/) {
 		$n = +[ $1, $2 ];
 		$n->[0] < $n->[1] or
-			syntax_error("range is reversed: " . $n->[0] " must be less than " . $n->[1]);
+			syntax_error("range is reversed: " . $n->[0] . " must be less than " . $n->[1]);
 	} else {
 		syntax_error("number, range or * is required: $pat2");
 	}
@@ -125,17 +125,34 @@ sub match_line($$) {
 	my $line = shift;
 	my $time = shift;
 
-	return match1($line->[0], $time->[0])
-		&& match1($line->[1], $time->[1])
-		&& match1($line->[2], $time->[2])
-		&& match1($line->[3], $time->[3])
-		&& match1($line->[4], $time->[4])
-		;
+	match1($line->[0], $time->[0]) or return 0;
+	match1($line->[1], $time->[1]) or return 0;
+	match1($line->[2], $time->[2]) or return 0;
+	match1($line->[3], $time->[3]) or return 0;
+	match1($line->[4], $time->[4]) || ( $time->[4] == 0 && match1($line->[4], 7)) or return 0;
+
+	return 1;
 }
 
+my @lines;
+
 while (<STDIN>) {
-	use Data::Dumper;
-	print Data::Dumper::Dumper(
-	parse_line($_)
-	);
+	push @lines, parse_line($_);
+}
+
+my $since = time;
+my $until = $since + 3600 * 24 * 30;
+for (my $t = $since; $t <= $until; $t += 60) {
+	my @t = localtime($t);
+
+	for my $line ( @lines ) {
+		if (match_line($line, +[
+			$t[1], $t[2], $t[3], $t[4] + 1,
+			$t[6],
+			])
+		) {
+			printf("%04d-%02d-%02d %02d:%02d - - %s\n",
+				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $line->[5]);
+		}
+	}
 }
