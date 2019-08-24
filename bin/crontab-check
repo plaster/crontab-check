@@ -2,13 +2,26 @@
 use strict;
 use utf8;
 
-our $dispo;
+our $current_dispo;
+our $current_line_no;
+our $current_line_content;
+our $current_file;
+our $has_user = 1;
 
 sub syntax_error($) {
 	my $msg = shift;
-	die "Syntax Error: $msg --"
-	. ($dispo ? " <$dispo>" : '')
-	. " at line $.\n";
+	my $location = '';
+	if ($current_file) {
+		$location .= "$current_file";
+	} else {
+		$location .= "<STDIN>";
+	}
+	$location .= ":$current_line_no" if defined $current_line_no;
+	$location .= ":$current_line_content" if defined ($current_line_content) && $current_line_content ne '';
+
+	die "*** Syntax Error: $msg"
+	. ($location eq '' ? '' : " at ${location}")
+	. "\n";
 }
 
 # <number>|<range>|<range>/<step>|<asterisk>|<asterisk>/<step>
@@ -42,7 +55,7 @@ sub parse2($) {
 		$n->[0] < $n->[1] or
 			syntax_error("range is reversed: " . $n->[0] . " must be less than " . $n->[1]);
 	} else {
-		syntax_error("number, range or * is required: $pat2");
+		syntax_error("number, range or * is required, but got: $pat2");
 	}
 
 	return +[ $n, $step ];
@@ -50,10 +63,10 @@ sub parse2($) {
 
 # comma separeted
 sub parse1($$) {
-	local $dispo = shift;
+	local $current_dispo = shift;
 	my $pat1 = shift;
 	defined($pat1) && $pat1 ne '' or
-		syntax_error("$dispo is missing");
+		syntax_error("$current_dispo is missing");
 	$pat1 =~ m/,$/ and
 		syntax_error("trailing comma is not allowed");
 	return +[ map { parse2($_) } split(m/,/, $pat1) ];
@@ -61,25 +74,30 @@ sub parse1($$) {
 
 # space separated
 sub parse_line($) {
-	my $line = shift;
+	local $current_line_content = shift;
 
-	chomp $line or syntax_error("NO EOL");
-	$line =~ s/^[ \t]*//;
+	chomp $current_line_content or syntax_error("NO EOL");
+	$current_line_content =~ s/^[ \t]*//;
 
 	# blank line and comments are ignored
-	return undef if $line eq '';
-	return undef if $line =~ m/^#/;
+	return undef if $current_line_content eq '';
+	return undef if $current_line_content =~ m/^#/;
 	# variable line are also ignored
-	return undef if $line =~ m/^[A-Za-z_]+ *=/;
+	return undef if $current_line_content =~ m/^[A-Za-z_]+ *=/;
 
-	my ($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $line, 6);
+	my ($min, $hour, $day, $month, $dow, $user, $cmd);
+	if ($has_user) {
+		($min, $hour, $day, $month, $dow, $user, $cmd) = split(m/[ \t]+/, $current_line_content, 7);
+	} else {
+		($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $current_line_content, 6);
+	}
 	return +[
 		parse1(min => $min),
 		parse1(hour => $hour),
 		parse1(day => $day),
 		parse1(month => $month),
 		parse1(dayofweek => $dow),
-		$cmd ];
+		$user, $cmd ];
 }
 
 sub match2($$) {
@@ -137,6 +155,7 @@ sub match_line($$) {
 my @lines;
 
 while (<STDIN>) {
+	local $current_line_no = $.;
 	push @lines, parse_line($_);
 }
 
@@ -151,8 +170,8 @@ for (my $t = $since; $t <= $until; $t += 60) {
 			$t[6],
 			])
 		) {
-			printf("%04d-%02d-%02d %02d:%02d - - %s\n",
-				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $line->[5]);
+			printf("%04d-%02d-%02d %02d:%02d - - %s %s\n",
+				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $line->[5] ? $line->[5] : '-', $line->[6]);
 		}
 	}
 }
