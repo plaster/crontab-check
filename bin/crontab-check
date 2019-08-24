@@ -3,7 +3,6 @@ use strict;
 use utf8;
 
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
-use IO::File;
 
 our $current_dispo;
 our $current_line_no;
@@ -226,8 +225,9 @@ sub load_fh($) {
 
 sub load_file($) {
 	local $current_file = shift;
-	my $fh = IO::File->new($current_file) or error(IO => "cannot open $current_file");
+	open(my $fh, '<', $current_file) or error(IO => "cannot open $current_file");
 	load_fh($fh);
+	close($fh) or error(IO => "cannot close $current_file");
 }
 
 sub load_current_system_crontab() {
