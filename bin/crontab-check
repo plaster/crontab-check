@@ -225,22 +225,23 @@ if (scalar(@files)) {
 	load_fh(\*STDIN);
 }
 
-sub show_interval($) {
+sub show_interval($$) {
 	my $seconds = shift;
-	my $sign = '+';
+	my $sign = shift || '+';
 	if ($seconds < 0) {
-		$seconds = abs($seconds);
 		$sign = '-';
+	} elsif ($seconds > 0) {
+		$sign = '+';
 	}
+	$seconds = abs($seconds);
 	return sprintf(qq{%s%d'%02d"}, $sign, int($seconds / 60), $seconds % 60);
 }
 
 # then play timeline and match to entries
 my $now = time;
-my $since = $now;
 
-my $until = $since + $duration;
-my $t0 = $since - ($since % 60); # XXX: round second to zero. is this correct...?
+my $until = $now + $duration;
+my $t0 = $now - ($now % 60); # XXX: round second to zero. is this correct...?
 my $last_match = $t0;
 
 my $print_now = sub {
@@ -260,14 +261,14 @@ for (my $t = $t0; $t <= $until; $t += 60) {
 			$t[6],
 			])
 		) {
-			if ($now <= $t && $print_now) {
+			if ($now < $t && $print_now) {
 				$print_now->();
 				undef $print_now;
 			}
 			printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s %s\n},
 				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
-				($t < $now ? '------' : show_interval($t - $last_match)),
-				show_interval($t - $since),
+				($t > $now ? show_interval($t - $last_match, '+') : '------'),
+				show_interval($t - $now, '-'),
 				$entry->[5] ? $entry->[5] : '-', $entry->[6]);
 			$last_match = $t;
 		}
