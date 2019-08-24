@@ -230,6 +230,33 @@ sub load_file($) {
 	load_fh($fh);
 }
 
+sub load_current_system_crontab() {
+	do {
+		my $file = '/etc/crontab';
+		-r $file and load_file($file);
+	};
+	do {
+		my $dir = '/etc/cron.d';
+		-d $dir and do {
+			opendir(my $dh, '/etc/cron.d') or error(IO => "cannot open directory $dir");
+			while (readdir $dh) {
+				my $file =  "${dir}/${_}";
+				load_file($file);
+			}
+			closedir $dh or error(IO => "cannot close directory $dir");
+		};
+	}
+}
+
+sub load_current_user_crontab() {
+	local $is_system = 0;
+	local $current_file = '<USER-CRONTAB>';
+	my $cmd = 'crontab -l';
+	open(my $fh, "$cmd |") or error(IO => "cannot invoke $cmd");
+	load_fh($fh);
+	close($fh) or error(IO => "cannot close $cmd");
+}
+
 # load crontab entries at first
 for my $file ( @files ) {
 	if ($file eq '-') {
