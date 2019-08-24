@@ -10,6 +10,7 @@ our $current_line_content;
 our $current_file;
 
 our $is_auto_mode = 0;
+our $is_location_mode = 0;
 our $is_system = 1;
 our $duration_future = 3600;
 our $duration_past = 0;
@@ -55,6 +56,7 @@ GetOptions(
 		$duration_past = opt_duration($k, $v);
 	},
 	"pattern=s" => \$pattern,
+	"print-location" => \$is_location_mode,
 	"user-file=s" => \@user_files,
 ) or error(CommandLine => "invalid option.");
 
@@ -357,11 +359,19 @@ for (my $t = $since; $t <= $until; $t += 60) {
 				$print_now->();
 				undef $print_now;
 			}
-			printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s %s\n},
-				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
-				($t > $now ? show_interval($t - $last_match, '+') : '------'),
-				show_interval($t - $now, '-'),
-				$entry->[5] ? $entry->[5] : '-', $entry->[6]);
+			if ($is_location_mode) {
+				printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s\n},
+					$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
+					($t > $now ? show_interval($t - $last_match, '+') : '------'),
+					show_interval($t - $now, '-'),
+					$entry->[7]);
+			} else {
+				printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s %s\n},
+					$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
+					($t > $now ? show_interval($t - $last_match, '+') : '------'),
+					show_interval($t - $now, '-'),
+					$entry->[5] ? $entry->[5] : '-', $entry->[6]);
+			}
 			$last_match = $t;
 		}
 	}
