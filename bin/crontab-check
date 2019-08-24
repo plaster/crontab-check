@@ -42,7 +42,8 @@ sub syntax_error($) {
 	error(Syntax => "$msg" . ($location eq '' ? '' : " at ${location}"));
 }
 
-# <number>|<range>|<range>/<step>|<asterisk>|<asterisk>/<step>
+# type Pat2 = ( Pat3, Maybe Int )
+# data Pat3 = Number Int | Range Int Int| Asterisk
 sub parse2($) {
 	my $pat2 = shift;
 
@@ -79,7 +80,8 @@ sub parse2($) {
 	return +[ $n, $step ];
 }
 
-# comma separeted
+# type Pat1 = [ Pat2 ]
+## Input: comma separeted
 sub parse1($$) {
 	local $current_dispo = shift;
 	my $pat1 = shift;
@@ -90,7 +92,8 @@ sub parse1($$) {
 	return +[ map { parse2($_) } split(m/,/, $pat1) ];
 }
 
-# space separated
+# type Line = ( Pat1, Pat1, Pat1, Pat1, Pat1, String, String, String )
+## Input: space separated
 sub parse_line($) {
 	local $current_line_content = shift;
 
