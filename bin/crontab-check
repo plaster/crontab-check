@@ -83,8 +83,7 @@ sub parse2($) {
 
 # type Pat1 = [ Pat2 ]
 # parse1 :: String -> Pat1
-sub parse1($$) {
-	local $current_dispo = shift;
+sub parse1($) {
 	my $pat1 = shift;
 	defined($pat1) && $pat1 ne '' or
 		syntax_error("$current_dispo is missing");
@@ -114,11 +113,11 @@ sub parse_line($) {
 		($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $current_line_content, 6);
 	}
 	return +[
-		parse1(min => $min),
-		parse1(hour => $hour),
-		parse1(day => $day),
-		parse1(month => $month),
-		parse1(dayofweek => $dow),
+		do { local $current_dispo = 'min';       parse1($min);   },
+		do { local $current_dispo = 'hour';      parse1($hour);  },
+		do { local $current_dispo = 'day';       parse1($day);   },
+		do { local $current_dispo = 'month';     parse1($month); },
+		do { local $current_dispo = 'dayofweek'; parse1($dow);   },
 		$user, $cmd, current_location() ];
 }
 
