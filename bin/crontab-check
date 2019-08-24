@@ -11,6 +11,8 @@ our $current_line_content;
 our $current_file;
 
 our $has_user = 1;
+our $duration = 3600;
+
 our @files;
 
 sub error($$) {
@@ -21,6 +23,24 @@ sub error($$) {
 
 GetOptions(
 	"file=s" => \@files,
+	"in=s" => sub {
+		my ($k, $v) = @_;
+			if ( $v =~ m/^([1-9][0-9]*)m/ ) {
+				$duration = 60 * $1;
+			}
+			elsif ( $v =~ m/^([1-9][0-9]*)h/ ) {
+				$duration = 60 * 60 * $1;
+			}
+			elsif ( $v =~ m/^([1-9][0-9]*)d/ ) {
+				$duration = 60 * 60 * 24 * $1;
+			}
+			elsif ( $v =~ m/^([1-9][0-9]*)w/ ) {
+				$duration = 60 * 60 * 24 * 7 * $1;
+			}
+			else {
+				error(CommandLine => "--$k $v is invalid. allowed: [0-9][0-9]...{m|h|d|w}");
+			}
+	},
 ) or error(CommandLine => "invalid option.");
 
 sub current_location() {
@@ -204,9 +224,10 @@ if (scalar(@files)) {
 	load_fh(\*STDIN);
 }
 
+
 # then play timeline and match to entries
 my $since = time;
-my $until = $since + 3600 * 24 * 30;
+my $until = $since + $duration;
 for (my $t = $since; $t <= $until; $t += 60) {
 	my @t = localtime($t);
 
