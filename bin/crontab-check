@@ -16,6 +16,7 @@ our $duration_past = 0;
 our $pattern;
 
 our @files;
+our @user_files;
 
 sub error($$) {
 	my $where = shift;
@@ -53,7 +54,7 @@ GetOptions(
 		$duration_past = opt_duration($k, $v);
 	},
 	"pattern=s" => \$pattern,
-	"user" => sub { $is_system = 0; },
+	"user-file=s" => \@user_files,
 ) or error(CommandLine => "invalid option.");
 
 sub current_location() {
@@ -230,13 +231,22 @@ sub load_file($) {
 }
 
 # load crontab entries at first
-if (scalar(@files)) {
-	for my $file ( @files ) {
+for my $file ( @files ) {
+	if ($file eq '-') {
+		local $current_file = '<STDIN>';
+		load_fh(\*STDIN);
+	} else {
 		load_file($file);
 	}
-} else {
-	local $current_file = '<STDIN>';
-	load_fh(\*STDIN);
+}
+for my $file ( @user_files ) {
+	local $is_system = 0;
+	if ($file eq '-') {
+		local $current_file = '<STDIN>';
+		load_fh(\*STDIN);
+	} else {
+		load_file($file);
+	}
 }
 
 sub show_interval($$) {
