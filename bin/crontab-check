@@ -82,6 +82,11 @@ sub syntax_error($) {
 	error(Syntax => "$msg" . ($location eq '' ? '' : " at ${location}"));
 }
 
+sub io_error($) {
+	my $msg = shift;
+	error(IO => $msg);
+}
+
 our %max4dispo = (
 	min => 59,
 	hour => 23,
@@ -258,9 +263,9 @@ sub load_fh($) {
 
 sub load_file($) {
 	local $current_file = shift;
-	open(my $fh, '<', $current_file) or error(IO => "cannot open $current_file");
+	open(my $fh, '<', $current_file) or io_error("cannot open $current_file");
 	load_fh($fh);
-	close($fh) or error(IO => "cannot close $current_file");
+	close($fh) or io_error("cannot close $current_file");
 }
 
 sub load_current_system_crontab() {
@@ -271,12 +276,12 @@ sub load_current_system_crontab() {
 	do {
 		my $dir = '/etc/cron.d';
 		-d $dir and do {
-			opendir(my $dh, '/etc/cron.d') or error(IO => "cannot open directory $dir");
+			opendir(my $dh, '/etc/cron.d') or io_error("cannot open directory $dir");
 			while (readdir $dh) {
 				my $file =  "${dir}/${_}";
 				load_file($file);
 			}
-			closedir $dh or error(IO => "cannot close directory $dir");
+			closedir $dh or io_error("cannot close directory $dir");
 		};
 	}
 }
@@ -285,7 +290,7 @@ sub load_current_user_crontab() {
 	local $is_system = 0;
 	local $current_file = '<USER-CRONTAB>';
 	my $cmd = 'crontab -l';
-	open(my $fh, '-|', $cmd) or error(IO => "cannot invoke $cmd");
+	open(my $fh, '-|', $cmd) or io_error("cannot invoke $cmd");
 	load_fh($fh);
 	close($fh);
 }
