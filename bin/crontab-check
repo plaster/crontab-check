@@ -10,7 +10,7 @@ our $current_line_no;
 our $current_line_content;
 our $current_file;
 
-our $has_user = 1;
+our $is_system = 1;
 our $duration = 3600;
 
 our @files;
@@ -41,6 +41,7 @@ GetOptions(
 				error(CommandLine => "--$k $v is invalid. allowed: [0-9][0-9]...{m|h|d|w}");
 			}
 	},
+	"user" => sub { $is_system = 0; },
 ) or error(CommandLine => "invalid option.");
 
 sub current_location() {
@@ -127,7 +128,7 @@ sub parse_line($) {
 	return undef if $current_line_content =~ m/^[A-Za-z_]+ *=/;
 
 	my ($min, $hour, $day, $month, $dow, $user, $cmd);
-	if ($has_user) {
+	if ($is_system) {
 		($min, $hour, $day, $month, $dow, $user, $cmd) = split(m/[ \t]+/, $current_line_content, 7);
 	} else {
 		($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $current_line_content, 6);
