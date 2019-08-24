@@ -94,7 +94,7 @@ sub check_pat3_range($) {
 	$n < $current_pat3_min and
 		syntax_error("$n is too small (< $current_pat3_min)");
 	$n > $current_pat3_max and
-		syntax_error("$n is too large (> $current_pat3_min)");
+		syntax_error("$n is too large (> $current_pat3_max)");
 	$current_pat3_min = $n;
 }
 
