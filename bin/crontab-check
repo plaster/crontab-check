@@ -60,6 +60,9 @@ GetOptions(
 	"user-file=s" => \@user_files,
 ) or error(CommandLine => "invalid option.");
 
+scalar(@files) || scalar(@user_files) or
+	$is_auto_mode = 1;
+
 sub current_location() {
 	my $location = '';
 	if (defined($current_file) && $current_file ne '') {
