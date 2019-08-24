@@ -13,6 +13,7 @@ our $current_file;
 our $is_system = 1;
 our $duration_future = 3600;
 our $duration_past = 0;
+our $pattern;
 
 our @files;
 
@@ -51,6 +52,7 @@ GetOptions(
 		my ($k, $v) = @_;
 		$duration_past = opt_duration($k, $v);
 	},
+	"pattern=s" => \$pattern,
 	"user" => sub { $is_system = 0; },
 ) or error(CommandLine => "invalid option.");
 
@@ -204,6 +206,8 @@ sub match_entry($$) {
 	match1($entry->[2], $time->[2]) or return 0;
 	match1($entry->[3], $time->[3]) or return 0;
 	match1($entry->[4], $time->[4]) || ( $time->[4] == 0 && match1($entry->[4], 7)) or return 0;
+
+	! defined($pattern) || $entry->[6] =~ $pattern or return 0;
 
 	return 1;
 }
