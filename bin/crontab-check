@@ -92,8 +92,8 @@ sub parse1($$) {
 	return +[ map { parse2($_) } split(m/,/, $pat1) ];
 }
 
-# type Line = ( Pat1, Pat1, Pat1, Pat1, Pat1, String, String, String )
-## Input: space separated
+# type Entry = ( Pat1, Pat1, Pat1, Pat1, Pat1, String, String, String )
+# parse_line :: String -> Entry
 sub parse_line($) {
 	local $current_line_content = shift;
 
@@ -160,27 +160,27 @@ sub match1($$) {
 	return 0;
 }
 
-sub match_line($$) {
-	my $line = shift;
+sub match_entry($$) {
+	my $entry = shift;
 	my $time = shift;
 
-	match1($line->[0], $time->[0]) or return 0;
-	match1($line->[1], $time->[1]) or return 0;
-	match1($line->[2], $time->[2]) or return 0;
-	match1($line->[3], $time->[3]) or return 0;
-	match1($line->[4], $time->[4]) || ( $time->[4] == 0 && match1($line->[4], 7)) or return 0;
+	match1($entry->[0], $time->[0]) or return 0;
+	match1($entry->[1], $time->[1]) or return 0;
+	match1($entry->[2], $time->[2]) or return 0;
+	match1($entry->[3], $time->[3]) or return 0;
+	match1($entry->[4], $time->[4]) || ( $time->[4] == 0 && match1($entry->[4], 7)) or return 0;
 
 	return 1;
 }
 
-my @lines;
+my @entries;
 
 sub load_fh($) {
 	my $fh = shift;
 	while (<$fh>) {
 		local $current_line_no = "$.";
-		my $line = parse_line($_) or next;
-		push @lines, $line;
+		my $entry = parse_line($_) or next;
+		push @entries, $entry;
 	}
 }
 
@@ -190,7 +190,7 @@ sub load_file($) {
 	load_fh($fh);
 }
 
-# load crontab at first
+# load crontab entries at first
 if (scalar(@files)) {
 	for my $file ( @files ) {
 		load_file($file);
@@ -200,20 +200,20 @@ if (scalar(@files)) {
 	load_fh(\*STDIN);
 }
 
-# then match to timeline
+# then play timeline and match to entries
 my $since = time;
 my $until = $since + 3600 * 24 * 30;
 for (my $t = $since; $t <= $until; $t += 60) {
 	my @t = localtime($t);
 
-	for my $line ( @lines ) {
-		if (match_line($line, +[
+	for my $entry ( @entries ) {
+		if (match_entry($entry, +[
 			$t[1], $t[2], $t[3], $t[4] + 1,
 			$t[6],
 			])
 		) {
 			printf("%04d-%02d-%02d %02d:%02d - - %s %s\n",
-				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $line->[5] ? $line->[5] : '-', $line->[6]);
+				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $entry->[5] ? $entry->[5] : '-', $entry->[6]);
 		}
 	}
 }
