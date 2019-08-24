@@ -254,7 +254,7 @@ sub load_current_user_crontab() {
 	my $cmd = 'crontab -l';
 	open(my $fh, '-|', $cmd) or error(IO => "cannot invoke $cmd");
 	load_fh($fh);
-	close($fh) or error(IO => "cannot close $cmd");
+	close($fh);
 }
 
 # load crontab entries at first
