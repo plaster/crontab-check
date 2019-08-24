@@ -44,6 +44,7 @@ sub syntax_error($) {
 
 # type Pat2 = ( Pat3, Maybe Int )
 # data Pat3 = Number Int | Range Int Int| Asterisk
+# parse2 :: String -> Pat2
 sub parse2($) {
 	my $pat2 = shift;
 
@@ -81,7 +82,7 @@ sub parse2($) {
 }
 
 # type Pat1 = [ Pat2 ]
-## Input: comma separeted
+# parse1 :: String -> Pat1
 sub parse1($$) {
 	local $current_dispo = shift;
 	my $pat1 = shift;
