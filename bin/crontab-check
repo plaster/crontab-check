@@ -4,7 +4,6 @@ use utf8;
 
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use IO::File;
-use List::Util qw( max );
 
 our $current_dispo;
 our $current_line_no;
@@ -228,22 +227,30 @@ if (scalar(@files)) {
 
 sub show_interval($) {
 	my $seconds = shift;
-	$seconds = max(0, $seconds); # Just executed job is shown as 0'00"
-	return sprintf(qq{%d'%02d"}, int($seconds / 60), $seconds % 60);
+	my $sign = '+';
+	if ($seconds < 0) {
+		$seconds = abs($seconds);
+		$sign = '-';
+	}
+	return sprintf(qq{%s%d'%02d"}, $sign, int($seconds / 60), $seconds % 60);
 }
 
 # then play timeline and match to entries
-my $since = time;
-
-do {
-	my @t = localtime($since);
-	printf("%04d-%02d-%02d %02d:%02d:%02d NOW\n",
-		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0]);
-};
+my $now = time;
+my $since = $now;
 
 my $until = $since + $duration;
-my $last_match = $since;
 my $t0 = $since - ($since % 60); # XXX: round second to zero. is this correct...?
+my $last_match = $t0;
+
+my $print_now = sub {
+	my @t = localtime($now);
+	printf("%04d-%02d-%02d %02d:%02d:%02d ------ (NOW)\n",
+		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0],
+		);
+	$last_match = $now;
+};
+
 for (my $t = $t0; $t <= $until; $t += 60) {
 	my @t = localtime($t);
 
@@ -253,17 +260,25 @@ for (my $t = $t0; $t <= $until; $t += 60) {
 			$t[6],
 			])
 		) {
-			printf(qq{%04d-%02d-%02d %02d:%02d +%s (NOW+%s) %s %s\n},
+			if ($now <= $t && $print_now) {
+				$print_now->();
+				undef $print_now;
+			}
+			printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s %s\n},
 				$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
-				show_interval($t - $last_match),
+				($t < $now ? '------' : show_interval($t - $last_match)),
 				show_interval($t - $since),
 				$entry->[5] ? $entry->[5] : '-', $entry->[6]);
-			$last_match = max($last_match, $t);
+			$last_match = $t;
 		}
 	}
 }
 
 do {
+	if ($print_now) {
+		$print_now->();
+		undef $print_now;
+	}
 	my @t = localtime($until);
 	printf("%04d-%02d-%02d %02d:%02d:%02d END\n",
 		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0]);
