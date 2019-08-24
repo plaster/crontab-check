@@ -9,6 +9,7 @@ our $current_line_no;
 our $current_line_content;
 our $current_file;
 
+our $is_auto_mode = 0;
 our $is_system = 1;
 our $duration_future = 3600;
 our $duration_past = 0;
@@ -43,6 +44,7 @@ sub opt_duration($$) {
 }
 
 GetOptions(
+	"auto" => \$is_auto_mode,
 	"file=s" => \@files,
 	"in=s" => sub {
 		my ($k, $v) = @_;
@@ -274,6 +276,10 @@ for my $file ( @user_files ) {
 	} else {
 		load_file($file);
 	}
+}
+if ($is_auto_mode) {
+	load_current_system_crontab();
+	load_current_user_crontab();
 }
 
 sub show_interval($$) {
