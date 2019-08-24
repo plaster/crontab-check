@@ -77,6 +77,25 @@ sub syntax_error($) {
 	error(Syntax => "$msg" . ($location eq '' ? '' : " at ${location}"));
 }
 
+our %max4dispo = (
+	min => 59,
+	hour => 23,
+	day => 31,
+	month => 12,
+	dayofweek => 7,
+);
+our $current_pat3_min;
+our $current_pat3_max;
+
+sub check_pat3_range($) {
+	my $n = shift;
+	$n < $current_pat3_min and
+		syntax_error("$n is too small (< $current_pat3_min)");
+	$n > $current_pat3_max and
+		syntax_error("$n is too large (> $current_pat3_min)");
+	$current_pat3_min = $n;
+}
+
 # type Pat2 = ( Pat3, Maybe Int )
 # data Pat3 = Number Int | Range Int Int| Asterisk
 # parse2 :: String -> Pat2
@@ -105,10 +124,11 @@ sub parse2($) {
 		defined($step) and
 			syntax_error("step is not allowed here (must be with range or *): $pat2");
 		$n = $pat3;
+		check_pat3_range($n);
 	} elsif ($pat3 =~ m/^([0-9]+)-([0-9]+)$/) {
 		$n = +[ $1, $2 ];
-		$n->[0] < $n->[1] or
-			syntax_error("range is reversed: " . $n->[0] . " must be less than " . $n->[1]);
+		check_pat3_range($n->[0]);
+		check_pat3_range($n->[1]);
 	} else {
 		syntax_error("number, range or * is required, but got: $pat2");
 	}
@@ -120,10 +140,16 @@ sub parse2($) {
 # parse1 :: String -> Pat1
 sub parse1($) {
 	my $pat1 = shift;
+	defined($current_dispo) or
+		error(InternalError => '$current_dispo is undefined.');
 	defined($pat1) && $pat1 ne '' or
 		syntax_error("$current_dispo is missing");
 	$pat1 =~ m/,$/ and
 		syntax_error("trailing comma is not allowed");
+	local $current_pat3_min = 0;
+	local $current_pat3_max = $max4dispo{$current_dispo};
+	defined($current_pat3_max) or
+		error(InternalError => "\$max4dispo{$current_dispo} is undefined.");
 	return +[ map { parse2($_) } split(m/,/, $pat1) ];
 }
 
