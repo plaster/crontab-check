@@ -11,7 +11,8 @@ our $current_line_content;
 our $current_file;
 
 our $is_system = 1;
-our $duration = 3600;
+our $duration_future = 3600;
+our $duration_past = 0;
 
 our @files;
 
@@ -21,25 +22,34 @@ sub error($$) {
 	die "*** $where Error: ${msg}\n";
 }
 
+sub opt_duration($$) {
+	my ($k, $v) = @_;
+	if ( $v =~ m/^([1-9][0-9]*)m/ ) {
+		return 60 * $1;
+	}
+	elsif ( $v =~ m/^([1-9][0-9]*)h/ ) {
+		return 60 * 60 * $1;
+	}
+	elsif ( $v =~ m/^([1-9][0-9]*)d/ ) {
+		return 60 * 60 * 24 * $1;
+	}
+	elsif ( $v =~ m/^([1-9][0-9]*)w/ ) {
+		return 60 * 60 * 24 * 7 * $1;
+	}
+	else {
+		error(CommandLine => "--$k $v is invalid. allowed: [0-9][0-9]...{m|h|d|w}");
+	}
+}
+
 GetOptions(
 	"file=s" => \@files,
 	"in=s" => sub {
 		my ($k, $v) = @_;
-			if ( $v =~ m/^([1-9][0-9]*)m/ ) {
-				$duration = 60 * $1;
-			}
-			elsif ( $v =~ m/^([1-9][0-9]*)h/ ) {
-				$duration = 60 * 60 * $1;
-			}
-			elsif ( $v =~ m/^([1-9][0-9]*)d/ ) {
-				$duration = 60 * 60 * 24 * $1;
-			}
-			elsif ( $v =~ m/^([1-9][0-9]*)w/ ) {
-				$duration = 60 * 60 * 24 * 7 * $1;
-			}
-			else {
-				error(CommandLine => "--$k $v is invalid. allowed: [0-9][0-9]...{m|h|d|w}");
-			}
+		$duration_future = opt_duration($k, $v);
+	},
+	"past=s" => sub {
+		my ($k, $v) = @_;
+		$duration_past = opt_duration($k, $v);
 	},
 	"user" => sub { $is_system = 0; },
 ) or error(CommandLine => "invalid option.");
@@ -241,8 +251,8 @@ sub show_interval($$) {
 my $now = time;
 
 my $now0 = $now - ($now % 60); # XXX: round second to zero. is this correct...?
-my $since = $now0;
-my $until = $now0 + $duration;
+my $since = $now0 - $duration_past;
+my $until = $now0 + $duration_future;
 my $last_match = $since;
 
 my $print_now = sub {
