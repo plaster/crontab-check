@@ -12,6 +12,7 @@ our $current_line_no;
 our $current_line_content;
 our $current_file;
 
+our $now;
 our $is_auto_mode = 0;
 our $is_location_mode = 0;
 our $is_system = 1;
@@ -56,6 +57,8 @@ sub show_usage() {
 	print STDERR "\t", qq{[--in   <duration-spec>]}, "\n";
 	print STDERR "\t\t", qq{Show jobs in the past and future.}, "\n";
 	print STDERR "\t\t", qq{Default: at most 59 seconds in the past, and 60 minutes in the future.}, "\n";
+	print STDERR "\t", qq{[--at-unix <UNIXTIME>]}, "\n";
+	print STDERR "\t\t", qq{Specify timeline origin. Default: now (i.e. the time just before output starts.)}, "\n";
 	print STDERR "\t", qq{[--file      <path-spec>] ...}, "\n";
 	print STDERR "\t", qq{[--user-file <path-spec>] ...}, "\n";
 	print STDERR "\t\t", qq{Load specified files instead of installed ones.}, "\n";
@@ -76,6 +79,7 @@ sub show_usage() {
 }
 
 GetOptions(
+	"at-unix=s" => \$now,
 	"auto" => \$is_auto_mode,
 	"file=s" => \@files,
 	"help" => sub { show_usage(); exit(0); },
@@ -363,7 +367,7 @@ sub show_interval($$) {
 }
 
 # then play timeline and match to entries
-my $now = time;
+defined($now) or $now = time;
 
 my $now0 = $now - ($now % 60); # XXX: round second to zero. is this correct...?
 my $since = $now0 - $duration_past;
