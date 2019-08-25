@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use strict;
+use warnings;
 use utf8;
 
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
@@ -46,9 +47,38 @@ sub opt_duration($$) {
 	}
 }
 
+sub show_usage() {
+	print STDERR qq{$0 - crontab simulator}, "\n";
+	print STDERR qq{usage:}, "\n";
+	print STDERR "\t" . qq{$0 <option-spec>}, "\n";
+	print STDERR qq{option-spec:}, "\n";
+	print STDERR "\t", qq{[--past <duration-spec>]}, "\n";
+	print STDERR "\t", qq{[--in   <duration-spec>]}, "\n";
+	print STDERR "\t\t", qq{Show jobs in the past and future.}, "\n";
+	print STDERR "\t\t", qq{Default: at most 59 seconds in the past, and 60 minutes in the future.}, "\n";
+	print STDERR "\t", qq{[--file      <path-spec>] ...}, "\n";
+	print STDERR "\t", qq{[--user-file <path-spec>] ...}, "\n";
+	print STDERR "\t\t", qq{Load specified files instead of installed ones.}, "\n";
+	print STDERR "\t\t", qq{--file is for system-crontab files (that has user field).}, "\n";
+	print STDERR "\t\t", qq{--user-file is for user-crontab files (that does not have user field).}, "\n";
+	print STDERR "\t", qq{[--pattern <PATTERN>] ...}, "\n";
+	print STDERR "\t\t", qq{Filter entries: Show the entry only if command has PATTERN as substring.}, "\n";
+	print STDERR "\t", qq{[--print-location]}, "\n";
+	print STDERR "\t\t", qq{Show raw crontab entry and its location, instead of job command.}, "\n";
+	print STDERR qq{duration-spec:}, "\n";
+	print STDERR "\t", qq{<num>m\t\tminutes.}, "\n";
+	print STDERR "\t", qq{<num>h\t\thours.}, "\n";
+	print STDERR "\t", qq{<num>d\t\tdays.}, "\n";
+	print STDERR "\t", qq{<num>w\t\tweeks.}, "\n";
+	print STDERR qq{path-spec:}, "\n";
+	print STDERR "\t", qq{-\t\tSTDIN}, "\n";
+	print STDERR "\t", qq{other\t\tPath to the file to load.}, "\n";
+}
+
 GetOptions(
 	"auto" => \$is_auto_mode,
 	"file=s" => \@files,
+	"help" => sub { show_usage(); exit(0); },
 	"in=s" => sub {
 		my ($k, $v) = @_;
 		$duration_future = opt_duration($k, $v);
