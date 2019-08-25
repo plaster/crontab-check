@@ -3,6 +3,7 @@ use strict;
 use utf8;
 
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
+use IO::File;
 use List::Util qw(any);
 
 our $current_dispo;
@@ -266,9 +267,8 @@ sub load_fh($) {
 
 sub load_file($) {
 	local $current_file = shift;
-	open(my $fh, '<', $current_file) or io_error("cannot open $current_file");
+	my $fh = IO::File->new( "< $current_file") or io_error("cannot open $current_file");
 	load_fh($fh);
-	close($fh) or io_error("cannot close $current_file");
 }
 
 sub load_current_system_crontab() {
@@ -293,9 +293,8 @@ sub load_current_user_crontab() {
 	local $is_system = 0;
 	local $current_file = '<USER-CRONTAB>';
 	my $cmd = 'crontab -l';
-	open(my $fh, '-|', $cmd) or io_error("cannot invoke $cmd");
+	my $fh = IO::File->new("$cmd |") or io_error("cannot invoke $cmd");
 	load_fh($fh);
-	close($fh);
 }
 
 # load crontab entries at first
