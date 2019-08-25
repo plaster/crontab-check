@@ -3,6 +3,7 @@ use strict;
 use utf8;
 
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
+use List::Util qw(any);
 
 our $current_dispo;
 our $current_line_no;
@@ -14,7 +15,7 @@ our $is_location_mode = 0;
 our $is_system = 1;
 our $duration_future = 3600;
 our $duration_past = 0;
-our $pattern;
+our @patterns;
 
 our @files;
 our @user_files;
@@ -55,7 +56,7 @@ GetOptions(
 		my ($k, $v) = @_;
 		$duration_past = opt_duration($k, $v);
 	},
-	"pattern=s" => \$pattern,
+	"pattern=s" => \@patterns,
 	"print-location" => \$is_location_mode,
 	"user-file=s" => \@user_files,
 ) or error(CommandLine => "invalid option.");
@@ -245,7 +246,11 @@ sub match_entry($$) {
 	match1($entry->[3], $time->[3]) or return 0;
 	match1($entry->[4], $time->[4]) || ( $time->[4] == 0 && match1($entry->[4], 7)) or return 0;
 
-	! defined($pattern) || $entry->[6] =~ $pattern or return 0;
+	scalar(@patterns) and do {
+		any {
+			index($entry->[6], $_) >= 0
+		} @patterns or return 0;
+	};
 
 	return 1;
 }
