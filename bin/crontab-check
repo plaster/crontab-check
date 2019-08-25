@@ -342,7 +342,7 @@ my $last_match = $since;
 
 my $print_now = sub {
 	my @t = localtime($now);
-	printf("%04d-%02d-%02d %02d:%02d:%02d ------ (NOW)\n",
+	printf("%04d-%02d-%02d %02d:%02d:%02d ------ ------------- NOW\n",
 		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0],
 		);
 	$last_match = $now;
@@ -350,8 +350,8 @@ my $print_now = sub {
 
 do {
 	my @t = localtime($since);
-	printf("%04d-%02d-%02d %02d:%02d:%02d ------ (NOW%s) BEGIN\n",
-		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0],
+	printf("%04d-%02d-%02d %02d:%02d --------- ( %9s ) BEGIN\n",
+		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
 		show_interval($since - $now, '-'),
 		);
 };
@@ -370,15 +370,15 @@ for (my $t = $since; $t <= $until; $t += 60) {
 				undef $print_now;
 			}
 			if ($is_location_mode) {
-				printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s\n},
+				printf(qq{%04d-%02d-%02d %02d:%02d %9s ( %9s ) %s\n},
 					$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
-					($t > $now ? show_interval($t - $last_match, '+') : '------'),
+					($t > $now ? show_interval($t - $last_match, '+') : '---------'),
 					show_interval($t - $now, '-'),
 					$entry->[7]);
 			} else {
-				printf(qq{%04d-%02d-%02d %02d:%02d:00 %s (NOW%s) %s %s\n},
+				printf(qq{%04d-%02d-%02d %02d:%02d %9s ( %9s ) %s %s\n},
 					$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
-					($t > $now ? show_interval($t - $last_match, '+') : '------'),
+					($t > $now ? show_interval($t - $last_match, '+') : '---------'),
 					show_interval($t - $now, '-'),
 					$entry->[5] ? $entry->[5] : '-', $entry->[6]);
 			}
@@ -393,8 +393,8 @@ do {
 		undef $print_now;
 	}
 	my @t = localtime($until);
-	printf("%04d-%02d-%02d %02d:%02d:%02d %s (NOW%s) END\n",
-		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1], $t[0],
+	printf("%04d-%02d-%02d %02d:%02d %9s ( %9s ) END\n",
+		$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
 		show_interval($until - $last_match, '+'),
 		show_interval($until - $now, '+'),
 		);
