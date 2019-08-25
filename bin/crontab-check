@@ -42,7 +42,7 @@ sub opt_duration($$) {
 		return 60 * 60 * 24 * 7 * $1;
 	}
 	else {
-		error(CommandLine => "--$k $v is invalid. allowed: [0-9][0-9]...{m|h|d|w}");
+		error(CommandLine => "--$k $v is invalid. allowed: [1-9][0-9]...{m|h|d|w}");
 	}
 }
 
