@@ -11,11 +11,11 @@ our $current_dispo;
 our $current_line_no;
 our $current_line_content;
 our $current_file;
+our $current_user;
 
 our $now;
 our $is_auto_mode = 0;
 our $is_location_mode = 0;
-our $is_system = 1;
 our $duration_future = 3600;
 our $duration_past = 0;
 our @patterns;
@@ -214,10 +214,11 @@ sub parse_line($) {
 	return undef if $current_line_content =~ m/^[A-Za-z_]+ *=/;
 
 	my ($min, $hour, $day, $month, $dow, $user, $cmd);
-	if ($is_system) {
-		($min, $hour, $day, $month, $dow, $user, $cmd) = split(m/[ \t]+/, $current_line_content, 7);
-	} else {
+	if (defined($current_user)) {
+		$user = $current_user;
 		($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $current_line_content, 6);
+	} else {
+		($min, $hour, $day, $month, $dow, $user, $cmd) = split(m/[ \t]+/, $current_line_content, 7);
 	}
 	return +[
 		do { local $current_dispo = 'min';       parse1($min);   },
@@ -324,7 +325,7 @@ sub load_current_system_crontab() {
 }
 
 sub load_current_user_crontab() {
-	local $is_system = 0;
+	local $current_user = getpwuid($<);
 	local $current_file = '<USER-CRONTAB>';
 	my $cmd = 'crontab -l';
 	my $fh = IO::File->new("$cmd |") or io_error("cannot invoke $cmd");
@@ -341,7 +342,7 @@ for my $file ( @files ) {
 	}
 }
 for my $file ( @user_files ) {
-	local $is_system = 0;
+	local $current_user = '<USER>';
 	if ($file eq '-') {
 		local $current_file = '<STDIN>';
 		load_fh(\*STDIN);
