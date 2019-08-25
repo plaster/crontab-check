@@ -139,7 +139,7 @@ sub check_pat3_range($) {
 		syntax_error("$n is too small (< $current_pat3_min)");
 	$n > $current_pat3_max and
 		syntax_error("$n is too large (> $current_pat3_max)");
-	$current_pat3_min = $n;
+	$current_pat3_min = $n; # state remembered for the next call.
 }
 
 # type Pat2 = ( Pat3, Maybe Int )
