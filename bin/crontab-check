@@ -247,6 +247,8 @@ sub match_entry($$) {
 	match1($entry->[4], $time->[4]) || ( $time->[4] == 0 && match1($entry->[4], 7)) or return 0;
 
 	scalar(@patterns) and do {
+		#XXX: empty OR-CLAUSE should be 'false' from the point of view of program modurality...
+		#XXX: but 'true' maybe more useful for human operators.
 		any {
 			index($entry->[6], $_) >= 0
 		} @patterns or return 0;
