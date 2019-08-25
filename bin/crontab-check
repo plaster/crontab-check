@@ -107,7 +107,7 @@ sub current_location() {
 		$location .= "<Unknown>";
 	}
 	$location .= ":$current_line_no" if defined $current_line_no;
-	$location .= ":$current_line_content" if defined ($current_line_content) && $current_line_content ne '';
+	$location .= "\t$current_line_content" if defined ($current_line_content) && $current_line_content ne '';
 	return $location;
 }
 
@@ -413,7 +413,7 @@ for (my $t = $since; $t <= $until; $t += 60) {
 				printf(qq{%s\n},
 					$entry->[7]);
 			} else {
-				printf(qq{%s %s\n},
+				printf(qq{%s\t%s\n},
 					$entry->[5] ? $entry->[5] : '-',
 					$entry->[6]);
 			}
