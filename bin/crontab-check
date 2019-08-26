@@ -5,7 +5,16 @@ use utf8;
 
 use Getopt::Long qw(:config posix_default no_ignore_case gnu_compat);
 use IO::File;
-use List::Util qw(any);
+# use List::Util qw(any);
+sub any(&@) {
+	my $f = shift;
+	for my $e ( @_ ) {
+		local $_ = $e;
+		my $r = $f->();
+		return $r if $r;
+	}
+	return;
+}
 
 our $current_dispo;
 our $current_line_no;
