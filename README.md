@@ -111,7 +111,4 @@ cronをシミュレートして、いつどんなプログラムが実行され�
 
 ## ライセンス
 
-以下の2つのお好きな方を選んでご利用ください。
-
-* MIT License
-* NYSL Version 0.9982 http://www.kmonos.net/nysl/
+* MIT License のもと提供します。 LICENSE ファイルを参照してください。
