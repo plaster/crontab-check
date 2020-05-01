@@ -108,3 +108,10 @@ cronをシミュレートして、いつどんなプログラムが実行され�
     * * * * * root true
     % bin/crontab-check --file /tmp/error-example3
     *** Syntax Error: NO EOL at /tmp/error-example3:2:* * * * * root true
+
+## ライセンス
+
+以下の2つのお好きな方を選んでご利用ください。
+
+* MIT License
+* NYSL Version 0.9982 http://www.kmonos.net/nysl/
