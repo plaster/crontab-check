@@ -27,6 +27,7 @@ our $is_auto_mode = 0;
 our $is_location_mode = 0;
 our $duration_future = 3600;
 our $duration_past = 0;
+our @patexc;
 our @patinc;
 
 our @files;
@@ -90,6 +91,7 @@ sub show_usage() {
 GetOptions(
 	"at-unix=s" => \$now,
 	"auto" => \$is_auto_mode,
+	"exclude=s" => \@patexc,
 	"file=s" => \@files,
 	"help" => sub { show_usage(); exit(0); },
 	"in=s" => sub {
@@ -295,6 +297,10 @@ sub match_entry($$) {
 			index($entry->[6], $_) >= 0
 		} @patinc or return 0;
 	};
+
+	any {
+		index($entry->[6], $_) >= 0
+	} @patexc and return 0;
 
 	return 1;
 }
