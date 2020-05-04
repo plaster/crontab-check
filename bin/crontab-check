@@ -413,11 +413,15 @@ for (my $t = $since; $t <= $until; $t += 60) {
 				$print_now->();
 				undef $print_now;
 			}
-			printf(qq{%04d-%02d-%02d %02d:%02d %9s ( %9s ) },
-					$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
-					($t > $now ? show_interval($t - $last_match, '+') : '---------'),
-					show_interval($t - $now, '-'),
-					);
+			if ($t == $last_match) {
+				printf(qq{                                         });
+			} else {
+				printf(qq{%04d-%02d-%02d %02d:%02d %9s ( %9s ) },
+						$t[5] + 1900, $t[4] + 1, $t[3], $t[2], $t[1],
+						($t > $now ? show_interval($t - $last_match, '+') : '---------'),
+						show_interval($t - $now, '-'),
+						);
+			}
 			if ($is_location_mode) {
 				printf(qq{%s\n},
 					$entry->[7]);
