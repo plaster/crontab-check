@@ -71,8 +71,11 @@ cronをシミュレートして、いつどんなプログラムが実行され�
                     Load specified files instead of installed ones.
                     --file is for system-crontab files (that has user field).
                     --user-file is for user-crontab files (that does not have user field).
-            [--pattern <PATTERN>] ...
-                    Filter entries: Show the entry only if command has PATTERN as substring.
+            [--include <PATTERN>] ...
+            [--exclude <PATTERN>] ...
+                    Filter entries: Show the entry only if command (has / does not have) PATTERN as substring.
+                    --pattern is alias for --include.
+                    Default: every pattern is included, and no patterns are excluded.
             [--print-location]
                     Show raw crontab entry and its location, instead of job command.
     duration-spec:
