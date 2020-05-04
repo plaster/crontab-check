@@ -96,6 +96,7 @@ GetOptions(
 		my ($k, $v) = @_;
 		$duration_future = opt_duration($k, $v);
 	},
+	"include=s" => \@patinc,
 	"past=s" => sub {
 		my ($k, $v) = @_;
 		$duration_past = opt_duration($k, $v);
