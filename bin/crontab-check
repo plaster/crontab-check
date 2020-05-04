@@ -27,7 +27,7 @@ our $is_auto_mode = 0;
 our $is_location_mode = 0;
 our $duration_future = 3600;
 our $duration_past = 0;
-our @patterns;
+our @patinc;
 
 our @files;
 our @user_files;
@@ -100,7 +100,7 @@ GetOptions(
 		my ($k, $v) = @_;
 		$duration_past = opt_duration($k, $v);
 	},
-	"pattern=s" => \@patterns,
+	"pattern=s" => \@patinc,
 	"print-location" => \$is_location_mode,
 	"user-file=s" => \@user_files,
 ) or error(CommandLine => "invalid option.");
@@ -287,12 +287,12 @@ sub match_entry($$) {
 	match1($entry->[3], $time->[3]) or return 0;
 	match1($entry->[4], $time->[4]) || ( $time->[4] == 0 && match1($entry->[4], 7)) or return 0;
 
-	scalar(@patterns) and do {
+	scalar(@patinc) and do {
 		#XXX: empty OR-CLAUSE should be 'false' from the point of view of program modurality...
 		#XXX: but 'true' maybe more useful for human operators.
 		any {
 			index($entry->[6], $_) >= 0
-		} @patterns or return 0;
+		} @patinc or return 0;
 	};
 
 	return 1;
