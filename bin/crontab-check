@@ -74,8 +74,11 @@ sub show_usage() {
 	print STDERR "\t\t", qq{Load specified files instead of installed ones.}, "\n";
 	print STDERR "\t\t", qq{--file is for system-crontab files (that has user field).}, "\n";
 	print STDERR "\t\t", qq{--user-file is for user-crontab files (that does not have user field).}, "\n";
-	print STDERR "\t", qq{[--pattern <PATTERN>] ...}, "\n";
-	print STDERR "\t\t", qq{Filter entries: Show the entry only if command has PATTERN as substring.}, "\n";
+	print STDERR "\t", qq{[--include <PATTERN>] ...}, "\n";
+	print STDERR "\t", qq{[--exclude <PATTERN>] ...}, "\n";
+	print STDERR "\t\t", qq{Filter entries: Show the entry only if command (has / does not have) PATTERN as substring.}, "\n";
+	print STDERR "\t\t", qq{--pattern is alias for --include.}, "\n";
+	print STDERR "\t\t", qq{Default: every pattern is included, and no patterns are excluded.}, "\n";
 	print STDERR "\t", qq{[--print-location]}, "\n";
 	print STDERR "\t\t", qq{Show raw crontab entry and its location, instead of job command.}, "\n";
 	print STDERR qq{duration-spec:}, "\n";
