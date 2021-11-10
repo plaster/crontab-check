@@ -232,8 +232,11 @@ sub parse_line($) {
 	if (defined($current_user)) {
 		$user = $current_user;
 		($min, $hour, $day, $month, $dow, $cmd) = split(m/[ \t]+/, $current_line_content, 6);
+		defined($cmd) && $cmd ne '' or syntax_error("cmd is EMPTY");
 	} else {
 		($min, $hour, $day, $month, $dow, $user, $cmd) = split(m/[ \t]+/, $current_line_content, 7);
+		defined($user) && $user ne '' &&
+		defined($cmd) && $cmd ne '' or syntax_error("user or cmd is EMPTY");
 	}
 	return +[
 		do { local $current_dispo = 'min';       parse1($min);   },
